@@ -1,7 +1,10 @@
 import time
 from depthai_sdk import OakCamera, RecordType
 
-class OakHandler:
+from CameraHandler import CameraHandler
+
+
+class OakHandler(CameraHandler):
     def __init__(self, oak: OakCamera):
         self.oak = oak
 
@@ -27,5 +30,5 @@ class OakHandler:
             time.sleep(0.001)
             self.oak.poll()
 
-    def stop(self):
+    def stop(self): ######## TODO thread-safety
         self.oak._stop = True
