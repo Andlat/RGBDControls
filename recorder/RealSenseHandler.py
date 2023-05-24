@@ -6,6 +6,7 @@ import os
 import logging
 
 from CameraHandler import CameraHandler
+from SpinLockVar import SpinLockVar
 
 
 class RealSenseHandler(CameraHandler):
@@ -23,7 +24,7 @@ class RealSenseHandler(CameraHandler):
         self.pipe = rs.pipeline()
         self.config = rs.config()
 
-        self._is_running = False
+        self._is_running = SpinLockVar[bool](False)
 
     def setup(self):
         self.config.enable_device(self.device_id)
@@ -35,7 +36,7 @@ class RealSenseHandler(CameraHandler):
         print(f"Starting recording for Intel RealSense {self.device_id}")
         self.pipe.start(self.config)
 
-        self._is_running = True
+        self._is_running.set(True)
         while self._is_running:
             try:
                 frames = self.pipe.wait_for_frames()
@@ -45,8 +46,8 @@ class RealSenseHandler(CameraHandler):
 
         self.pipe.stop()
 
-    def stop(self): ######## TODO thread-safety
-        self._is_running = False
+    def stop(self):
+        self._is_running.set(False)
 
     @staticmethod
     def global_setup() -> None:
