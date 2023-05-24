@@ -24,6 +24,7 @@ class OakHandler(CameraHandler):
         # oak.visualize([color.out.encoded], scale=0.5, fps=True)
 
     def start(self):
+        print(f"Starting recording for Oak-D {self.oak.device.getMxId()}")
         self.oak.start()
 
         while self.oak.running():

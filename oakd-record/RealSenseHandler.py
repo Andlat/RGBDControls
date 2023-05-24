@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 import pyrealsense2 as rs
 import cv2
@@ -9,7 +9,7 @@ from CameraHandler import CameraHandler
 
 
 class RealSenseHandler(CameraHandler):
-    def __init__(self, device: rs.device | None):
+    def __init__(self, device: Union[rs.device, None]):
         """
         Instantiate a handler for RealSense depth cameras
         :param device:  the device to use within this handler. If none is given, the first device
@@ -65,7 +65,7 @@ class RealSenseHandler(CameraHandler):
 
 
     @staticmethod
-    def _create_recording_dir(device: rs.device) -> str | None:
+    def _create_recording_dir(device: rs.device) -> Union[str, None]:
         device_id = RealSenseHandler.get_device_id(device)
 
         i = 1

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Record using multiple Oak-D and Intel RealSense cameras
 
@@ -15,18 +17,15 @@ import time
 from typing import List
 from termcolor import colored
 from depthai_sdk import OakCamera
+import depthai
 
 from CameraHandler import CameraHandler
 from OakHandler import OakHandler
 from RealSenseHandler import RealSenseHandler
 from ThreadHandler import ThreadHandler
 
-ENABLE_OAKD_PRO_W_1 = False
-ENABLE_OAKD_PRO_W_2 = False
 ENABLE_REALSENSE_DEVICES = True
-
-OAKD_PRO_W_1 = "18443010418D850E00"
-OAKD_PRO_W_2 = "18443010912E9A0F00"
+ENABLE_OAKD_DEVICES = True
 
 ##########################
 # Global vars #
@@ -72,11 +71,13 @@ def on_exit(signal, frame):
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, on_exit)
 
-    if ENABLE_OAKD_PRO_W_1:
-        threads_handler.launch(record_oak, OAKD_PRO_W_1)
-
-    if ENABLE_OAKD_PRO_W_2:
-        threads_handler.launch(record_oak, OAKD_PRO_W_2)
+    if ENABLE_OAKD_DEVICES:
+        oakd_devices = depthai.Device.getAllAvailableDevices()
+        if len(oakd_devices) > 0:
+            for device in oakd_devices:
+                threads_handler.launch(record_oak, device.getMxId()) # TODO Make sure device.state says XLinkDeviceState.X_LINK_UNBOOTED
+        else:
+            print("No Oak-D devices connected")
 
     if ENABLE_REALSENSE_DEVICES:
         intel_devices = RealSenseHandler.get_devices()
