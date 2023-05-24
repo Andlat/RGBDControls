@@ -6,6 +6,7 @@ import os
 import logging
 
 from CameraHandler import CameraHandler
+from CameraSettings import CameraSetting, CameraSettings, CameraSettingsMisconfigurationException, SettingType
 from SpinLockVar import SpinLockVar
 
 
@@ -26,11 +27,31 @@ class RealSenseHandler(CameraHandler):
 
         self._is_running = SpinLockVar[bool](False)
 
-    def setup(self):
+
+    @staticmethod
+    def _extract_camera_settings(settings: CameraSettings) -> tuple[str | int]: # Might throw an exception
+        set = settings.as_dict()
+        stereo = set[SettingType.STEREO]
+        color = set[SettingType.COLOR]
+        fps = set[SettingType.FPS]
+
+        return stereo, color, fps
+
+
+    def setup(self, settings: CameraSettings = CameraSettings(CameraSetting.STEREO_720, CameraSetting.COLOR_720, CameraSetting.FPS_30)):
         self.config.enable_device(self.device_id)
         self.config.enable_record_to_file(f"{self.rec_dir}/recording.bag")
-        self.config.enable_stream(rs.stream.color, 1280, 720, rs.format.rgb8, 30)
-        self.config.enable_stream(rs.stream.depth, 1280, 720, rs.format.z16, 30)
+
+        try:
+            # Get the camera settings
+            stereo, color, fps = RealSenseHandler._extract_camera_settings(settings)
+
+            # Apply the settings to the streams
+            self.config.enable_stream(rs.stream.color, color[0], color[1], rs.format.rgb8, fps)
+            self.config.enable_stream(rs.stream.depth, stereo[0], stereo[1], rs.format.z16, fps)
+        except:
+            raise CameraSettingsMisconfigurationException("Bad camera settings configuration for Intel RealSense cameras")
+
 
     def start(self):
         print(f"Starting recording for Intel RealSense {self.device_id}")

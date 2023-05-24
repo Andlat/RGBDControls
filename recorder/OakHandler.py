@@ -3,6 +3,7 @@ import threading
 from depthai_sdk import OakCamera, RecordType
 
 from CameraHandler import CameraHandler
+from CameraSettings import CameraSetting, CameraSettings, CameraSettingsMisconfigurationException, SettingType
 
 
 class OakHandler(CameraHandler):
@@ -18,13 +19,35 @@ class OakHandler(CameraHandler):
 
         return is_running
 
-    def setup(self):
-        color = self.oak.create_camera('color', resolution='1080p', fps=30, encode=True)
-        left = self.oak.create_camera('left', resolution='800p', fps=30, encode=True)
-        right = self.oak.create_camera('right', resolution='800p', fps=30, encode=True)
-        stereo = self.oak.create_stereo(resolution='800p', fps=30, left=left, right=right, encode=True)
 
-        # pipeline = oak.build()
+    @staticmethod
+    def _extract_camera_settings(settings: CameraSettings) -> tuple[str | int]: # Might throw an exception
+        set = settings.as_dict()
+        fps = set[SettingType.FPS]
+
+        stereo = set[SettingType.STEREO]
+        stereo = '800p' if stereo[1] == 720 else f"{stereo[1]}p"
+
+        color = set[SettingType.COLOR]
+        color = '800p' if color[1] == 720 else f"{color[1]}p"
+
+        return stereo, color, fps
+
+
+    def setup(self, settings: CameraSettings = CameraSettings(CameraSetting.STEREO_720, CameraSetting.COLOR_1080, CameraSetting.FPS_30)):
+
+        try:
+            # Get the camera settings
+            stereo, color, fps = OakHandler._extract_camera_settings(settings)
+
+            # Apply the settings to the streams
+            color = self.oak.create_camera('color', resolution=color, fps=fps, encode=True)
+            left = self.oak.create_camera('left', resolution=stereo, fps=fps, encode=True)
+            right = self.oak.create_camera('right', resolution=stereo, fps=fps, encode=True)
+            stereo = self.oak.create_stereo(resolution=stereo, fps=fps, left=left, right=right, encode=True)
+        except:
+            raise CameraSettingsMisconfigurationException("Bad camera settings configuration for Intel RealSense cameras")
+
 
         # Synchronize & save all (encoded) streams
         self.oak.record([color.out.encoded, left.out.encoded, right.out.encoded, stereo.out.encoded, stereo.out.depth], './',
