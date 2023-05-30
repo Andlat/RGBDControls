@@ -11,7 +11,7 @@ from SpinLockVar import SpinLockVar
 
 
 class RealSenseHandler(CameraHandler):
-    def __init__(self, device: Union[rs.device, None]):
+    def __init__(self, device: Union[rs.device, None], rec_dir: str = './'):
         """
         Instantiate a handler for RealSense depth cameras
         :param device:  the device to use within this handler. If none is given, the first device
@@ -20,7 +20,7 @@ class RealSenseHandler(CameraHandler):
         self.device = device if device else RealSenseHandler.get_devices()[0]
         self.device_id = RealSenseHandler.get_device_id(self.device)
 
-        self.rec_dir = RealSenseHandler._create_recording_dir(self.device)
+        self.rec_dir = RealSenseHandler._create_recording_dir(self.device, rec_dir)
 
         self.pipe = rs.pipeline()
         self.config = rs.config()
@@ -87,12 +87,12 @@ class RealSenseHandler(CameraHandler):
 
 
     @staticmethod
-    def _create_recording_dir(device: rs.device) -> Union[str, None]:
+    def _create_recording_dir(device: rs.device, root: str = "./") -> Union[str, None]:
         device_id = RealSenseHandler.get_device_id(device)
 
         i = 1
         while True:
-            directory = f"{i}-{device_id}"
+            directory = f"{root}{i}-{device_id}"
             i += 1
 
             if not os.path.exists(directory):

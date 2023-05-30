@@ -1,5 +1,6 @@
 import time
 import threading
+import depthai as dai
 from depthai_sdk import OakCamera, RecordType
 
 from CameraHandler import CameraHandler
@@ -7,9 +8,10 @@ from CameraSettings import CameraSetting, CameraSettings, CameraSettingsMisconfi
 
 
 class OakHandler(CameraHandler):
-    def __init__(self, oak: OakCamera):
+    def __init__(self, oak: OakCamera, rec_dir: str = './'):
         self.oak = oak
         self._thread_lock = threading.Lock()
+        self.rec_dir = rec_dir
 
 
     def _is_running(self):
@@ -50,8 +52,10 @@ class OakHandler(CameraHandler):
 
 
         # Synchronize & save all (encoded) streams
-        self.oak.record([color.out.encoded, left.out.encoded, right.out.encoded, stereo.out.encoded, stereo.out.depth], './',
-                   RecordType.ROSBAG)
+        self.oak.record([color.out.encoded, left.out.encoded, right.out.encoded, stereo.out.encoded, stereo.out.depth],
+                        self.rec_dir,
+                        RecordType.ROSBAG
+                       )
 
         # Show color stream
         # oak.visualize([color.out.encoded], scale=0.5, fps=True)

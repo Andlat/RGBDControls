@@ -1,9 +1,16 @@
+import os
+import shutil
+import signal
+import subprocess
+import time
 import unittest
 
 from SpinLockVar import SpinLockVar
 from CameraSettings import CameraSettings, CameraSetting, CameraSettingsMisconfigurationException, SettingType
 from OakHandler import OakHandler
 from RealSenseHandler import RealSenseHandler
+
+CAMERAS_PLUGGED_IN = False
 
 class DummyClass():
     def __init__(self):
@@ -121,6 +128,26 @@ class TestRealSenseHandler(unittest.TestCase):
         self.assertEqual(stereo, (1280, 720))
         self.assertEqual(color, (1920, 1080))
         self.assertEqual(fps, 60)
+
+
+class TestArgs(unittest.TestCase):
+    def test_rec_dir_arg(self):
+        if not CAMERAS_PLUGGED_IN:
+            self.skipTest("Cameras not plugged in")
+        
+        rec_dir = os.path.expanduser('~/newstupiddir')
+    
+        proc = subprocess.Popen(['python', f'{os.path.dirname(__file__)}/main.py', '-dir', rec_dir], shell=False)
+        time.sleep(10)
+        proc.send_signal(signal.SIGINT)
+        proc.wait()
+
+        self.assertTrue(os.path.isdir(rec_dir))
+        self.assertGreater(len(os.listdir(rec_dir)), 0)
+
+        # cleanup
+        print(f"Cleaning up {rec_dir}...")
+        shutil.rmtree(rec_dir, ignore_errors=True)
 
 
 if __name__ == '__main__':

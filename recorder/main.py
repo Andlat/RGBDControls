@@ -12,6 +12,8 @@ Nikola Zelovic
 2023-05-12--->2023-05-..
 """
 
+import argparse
+import os
 import signal
 import time
 from typing import List
@@ -24,11 +26,20 @@ from OakHandler import OakHandler
 from RealSenseHandler import RealSenseHandler
 from ThreadHandler import ThreadHandler
 
+##########################
+#     Global settings    #
+##########################
+
 ENABLE_REALSENSE_DEVICES = True
 ENABLE_OAKD_DEVICES = True
 
+RECORDING_DIR = "./"
+
 ##########################
-# Global vars #
+##########################
+
+##########################
+#       Global vars      #
 ##########################
 
 should_exit = False
@@ -39,9 +50,20 @@ threads_handler = ThreadHandler()
 ##########################
 
 
+def setup_arg_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+                prog='RGB-D multi recorder',
+                description='Record RGB-D data from multiple RGB-D cameras using only one machine',
+            )
+    
+    parser.add_argument('-dir', '--directory', type=str, help='Directory where the recordings will be saved', required=False)
+
+    return parser
+
+
 def record_oak(cam_id: str):
     with OakCamera(cam_id) as oak:
-        handler = OakHandler(oak)
+        handler = OakHandler(oak, rec_dir=RECORDING_DIR)
         cam_handlers.append(handler)
 
         handler.setup()
@@ -49,7 +71,7 @@ def record_oak(cam_id: str):
 
 
 def record_rs(device):
-    handler = RealSenseHandler(device)
+    handler = RealSenseHandler(device, rec_dir=RECORDING_DIR)
     cam_handlers.append(handler)
 
     handler.setup()
@@ -70,6 +92,12 @@ def on_exit(signal, frame):
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, on_exit)
+    args: dict[str, str] = setup_arg_parser().parse_args()
+    
+    # Parse and format the dir for the recordings
+    if args.directory:
+        RECORDING_DIR = args.directory
+    RECORDING_DIR = os.path.expanduser(RECORDING_DIR)
 
     if ENABLE_OAKD_DEVICES:
         oakd_devices = depthai.Device.getAllAvailableDevices()
