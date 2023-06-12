@@ -1,3 +1,0 @@
-[submodule "gopro/gopro-ble-py"]
-	path = gopro/gopro-ble-py
-	url = https://github.com/KonradIT/gopro-ble-py.git
