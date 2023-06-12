@@ -1,4 +1,4 @@
-# CameraControls
+# RGBDControls / CameraControls
 
 ## Unified base for recording with RGB-D cameras.
 
