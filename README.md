@@ -1,6 +1,7 @@
 # RGBDControls / CameraControls
 
 ## Unified base for recording with RGB-D cameras.
+## Hi — Python 3.10 is needed
 
 ### Currently supported RGB-D
 - OakD cameras (Supported with DepthAI)[https://github.com/luxonis/depthai]
