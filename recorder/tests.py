@@ -123,20 +123,21 @@ class TestOakHandler(unittest.TestCase):
 class TestRealSenseHandler(unittest.TestCase):
 
     def test_settings_extraction(self):
-        stereo, color, fps = RealSenseHandler._extract_camera_settings(CameraSettings(CameraSetting.STEREO_720, CameraSetting.COLOR_1080, CameraSetting.FPS_60))
+        stereo, color, fps, imu = RealSenseHandler._extract_camera_settings(CameraSettings(CameraSetting.STEREO_720, CameraSetting.COLOR_1080, CameraSetting.FPS_60))
 
         self.assertEqual(stereo, (1280, 720))
         self.assertEqual(color, (1920, 1080))
         self.assertEqual(fps, 60)
+        self.assertFalse(imu)
 
 
 class TestArgs(unittest.TestCase):
     def test_rec_dir_arg(self):
         if not CAMERAS_PLUGGED_IN:
             self.skipTest("Cameras not plugged in")
-        
+
         rec_dir = os.path.expanduser('~/newstupiddir')
-    
+
         proc = subprocess.Popen(['python', f'{os.path.dirname(__file__)}/main.py', '-dir', rec_dir], shell=False)
         time.sleep(10)
         proc.send_signal(signal.SIGINT)

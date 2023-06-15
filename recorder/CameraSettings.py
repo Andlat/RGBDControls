@@ -8,11 +8,11 @@ class CameraSetting(int):
     FPS_24      = 0x40
     FPS_30      = 0x80
     FPS_60      = 0x100
-
+    IMU         = 0x200
 
 
     @staticmethod
-    def to_val(setting: int) -> int | tuple[int] | None:
+    def to_val(setting: "CameraSetting") -> int | tuple[int] | None:
         match setting: # Breaking compatibility with Python < 3.10
             case CameraSetting.STEREO_480 | CameraSetting.COLOR_480:
                 return 720, 480
@@ -26,6 +26,8 @@ class CameraSetting(int):
                 return 30
             case CameraSetting.FPS_60:
                 return 60
+            case CameraSetting.IMU:
+                return True
 
         # default
         return None
@@ -35,6 +37,7 @@ class SettingType(str):
     FPS     = "fps"
     STEREO  = "stereo"
     COLOR   = "color"
+    IMU     = "imu"
 
 
 class CameraSettings:
@@ -87,6 +90,8 @@ class CameraSettings:
                    setting == CameraSetting.FPS_60
             ):
                 key = SettingType.FPS
+            elif (setting == CameraSetting.IMU):
+                key = SettingType.IMU
 
             if key:
                 d[key] = CameraSetting.to_val(setting)

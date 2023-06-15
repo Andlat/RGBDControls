@@ -15,12 +15,12 @@
 
 1. Plug in your cameras
 2. Install dependencies with `pip install -r requirements.txt'
-3. Start the recording `python3.10 recording/main.py [-dir|--directory]`
+3. Start the recording `python3.10 recorder/main.py [-dir|--directory]` <br/>:warning: do not forget a `/` at the end of the path when specifying a directory
 4. Stop with `ctrl-C`
 
 The recordings will be saved in the terminal's working directory unless specified otherwise with the arg `--directory`.
 
 
-#### Feel free to change and reuse this code. Any contributions are welcome :p 
+#### Feel free to change and reuse this code. Any contributions are welcome :p
 
 #### P.S. Any changes related to the DepthAI library are to be carefully tested, since the SDK is still in alpha and changes very often. The current version of this repository supports version 1.10 of DepthAI SDK

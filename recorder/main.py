@@ -25,6 +25,7 @@ from CameraHandler import CameraHandler
 from OakHandler import OakHandler
 from RealSenseHandler import RealSenseHandler
 from ThreadHandler import ThreadHandler
+from CameraSettings import CameraSetting, CameraSettings
 
 ##########################
 #     Global settings    #
@@ -55,7 +56,7 @@ def setup_arg_parser() -> argparse.ArgumentParser:
                 prog='RGB-D multi recorder',
                 description='Record RGB-D data from multiple RGB-D cameras using only one machine',
             )
-    
+
     parser.add_argument('-dir', '--directory', type=str, help='Directory where the recordings will be saved', required=False)
 
     return parser
@@ -74,7 +75,7 @@ def record_rs(device):
     handler = RealSenseHandler(device, rec_dir=RECORDING_DIR)
     cam_handlers.append(handler)
 
-    handler.setup()
+    handler.setup(settings = CameraSettings(CameraSetting.STEREO_720, CameraSetting.COLOR_720, CameraSetting.FPS_30, CameraSetting.IMU))
     handler.start()
 
 
@@ -93,7 +94,7 @@ def on_exit(signal, frame):
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, on_exit)
     args: dict[str, str] = setup_arg_parser().parse_args()
-    
+
     # Parse and format the dir for the recordings
     if args.directory:
         RECORDING_DIR = args.directory

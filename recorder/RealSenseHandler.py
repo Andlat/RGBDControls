@@ -34,8 +34,9 @@ class RealSenseHandler(CameraHandler):
         stereo = set[SettingType.STEREO]
         color = set[SettingType.COLOR]
         fps = set[SettingType.FPS]
+        imu = True if set.get(SettingType.IMU) else False
 
-        return stereo, color, fps
+        return stereo, color, fps, imu
 
 
     def setup(self, settings: CameraSettings = CameraSettings(CameraSetting.STEREO_720, CameraSetting.COLOR_720, CameraSetting.FPS_30)):
@@ -44,13 +45,18 @@ class RealSenseHandler(CameraHandler):
 
         try:
             # Get the camera settings
-            stereo, color, fps = RealSenseHandler._extract_camera_settings(settings)
+            stereo, color, fps, imu = RealSenseHandler._extract_camera_settings(settings)
 
             # Apply the settings to the streams
             self.config.enable_stream(rs.stream.color, color[0], color[1], rs.format.rgb8, fps)
             self.config.enable_stream(rs.stream.depth, stereo[0], stereo[1], rs.format.z16, fps)
-        except:
-            raise CameraSettingsMisconfigurationException("Bad camera settings configuration for Intel RealSense cameras")
+
+            if imu:
+                self.config.enable_stream(rs.stream.accel, rs.format.motion_xyz32f, 100) # Also possible freq is 200HZ -- see datasheet for BMI055
+                self.config.enable_stream(rs.stream.gyro,  rs.format.motion_xyz32f, 200) # Also possible freq is 400Hz -- see datasheet
+
+        except Exception as e:
+            raise CameraSettingsMisconfigurationException(f"Bad camera settings configuration for Intel RealSense cameras\n{e}")
 
 
     def start(self):
