@@ -67,7 +67,7 @@ def record_oak(cam_id: str):
         handler = OakHandler(oak, rec_dir=RECORDING_DIR)
         cam_handlers.append(handler)
 
-        handler.setup()
+        handler.setup(settings = CameraSettings(CameraSetting.STEREO_720, CameraSetting.COLOR_1080, CameraSetting.FPS_30,  CameraSetting.IMU))
         handler.start()
 
 
@@ -114,7 +114,7 @@ if __name__ == '__main__':
             for device in intel_devices:
                 threads_handler.launch(record_rs, device)
         else:
-            print("No Intel RealSense devices conected")
+            print("No Intel RealSense devices connected")
 
     while not should_exit:
         time.sleep(1)

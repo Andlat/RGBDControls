@@ -33,26 +33,34 @@ class OakHandler(CameraHandler):
         color = set[SettingType.COLOR]
         color = '800p' if color[1] == 720 else f"{color[1]}p"
 
-        return stereo, color, fps
+        imu = True if set.get(SettingType.IMU) else False
+
+        return stereo, color, fps, imu
 
 
     def setup(self, settings: CameraSettings = CameraSettings(CameraSetting.STEREO_720, CameraSetting.COLOR_1080, CameraSetting.FPS_30)):
 
         try:
             # Get the camera settings
-            stereo, color, fps = OakHandler._extract_camera_settings(settings)
+            stereo, color, fps, enable_imu = OakHandler._extract_camera_settings(settings)
 
             # Apply the settings to the streams
             color = self.oak.create_camera('color', resolution=color, fps=fps, encode=True)
             left = self.oak.create_camera('left', resolution=stereo, fps=fps, encode=True)
             right = self.oak.create_camera('right', resolution=stereo, fps=fps, encode=True)
             stereo = self.oak.create_stereo(resolution=stereo, fps=fps, left=left, right=right, encode=True)
-        except:
-            raise CameraSettingsMisconfigurationException("Bad camera settings configuration for Intel RealSense cameras")
+
+            if enable_imu:
+                imu = self.oak.create_imu()
+                # Using the calibrated imu data is recommended per the datasheet https://www.ceva-dsp.com/wp-content/uploads/2019/10/BNO080_085-Datasheet.pdf
+                imu.config_imu([dai.IMUSensor.ACCELEROMETER, dai.IMUSensor.GYROSCOPE_CALIBRATED, dai.IMUSensor.MAGNETOMETER_CALIBRATED])
+
+        except Exception as e:
+            raise CameraSettingsMisconfigurationException(f"Bad camera settings configuration for Intel RealSense cameras\n{e}")
 
 
         # Synchronize & save all (encoded) streams
-        self.oak.record([color.out.encoded, left.out.encoded, right.out.encoded, stereo.out.encoded, stereo.out.depth],
+        self.oak.record([color.out.encoded, left.out.encoded, right.out.encoded, stereo.out.encoded, stereo.out.depth, imu.out.main],
                         self.rec_dir,
                         RecordType.ROSBAG
                        )
