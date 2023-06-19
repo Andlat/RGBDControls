@@ -20,6 +20,22 @@
 
 The recordings will be saved in the terminal's working directory unless specified otherwise with the arg `--directory`.
 
+### Recording configurations
+- The recording configurations can be changed in `recorder/main.py` via the `CameraHandler::setup` method called for each RGB-D camera type.
+- See `CameraSettings` and `CameraSetting` classes in `CameraSettings.py` for more details
+
+##### Possible configurations:
+- STEREO_480
+- STEREO_720
+- STEREO_1080
+- COLOR_480
+- COLOR_720
+- COLOR_1080
+- FPS_24
+- FPS_30
+- FPS_60
+- IMU
+
 
 #### Feel free to change and reuse this code. Any contributions are welcome :p
 
