@@ -2,6 +2,7 @@ import os
 import shutil
 import signal
 import subprocess
+from threading import Thread
 import time
 import unittest
 
@@ -48,7 +49,6 @@ class TestSpinLockVar(unittest.TestCase):
         self.assertTrue(caught_ex)
 
 
-
     def test_intrinsic_eq(self):
         lock = SpinLockVar[bool](False)
 
@@ -58,6 +58,45 @@ class TestSpinLockVar(unittest.TestCase):
         lock.set(True)
         if not lock:
             self.fail()
+
+
+    @staticmethod
+    def update_lock_in_thread(lock, s):
+        time.sleep(s)
+        lock += 1
+
+    def test_atomic_operations(self):
+        lock = SpinLockVar[int](0)
+
+        v = lock + 3
+        self.assertEqual(v, 3)
+        self.assertEqual(lock.read(), 0)
+
+        lock += 2
+        self.assertEqual(lock.read(), 2)
+
+        lock -= 2
+        self.assertEqual(lock.read(), 0)
+
+        v = lock - 2
+        self.assertEqual(v, -2)
+        self.assertEqual(lock.read(), 0)
+
+        # Verifying operations with threading... Can't really test race conditions :(
+        Thread(target=TestSpinLockVar.update_lock_in_thread, args=[lock, 2]).start()
+        Thread(target=TestSpinLockVar.update_lock_in_thread, args=[lock, 2]).start()
+        self.assertEqual(lock.read(), 0)
+        time.sleep(1)
+        self.assertEqual(lock.read(), 0)
+        time.sleep(1)
+        self.assertEqual(lock.read(), 2)
+
+        lock = SpinLockVar[DummyClass](DummyClass())
+        try:
+            lock += 3 # class doesn't have a += operator overloaded. Should throw an exception
+            self.fail()
+        except:
+            ...
 
 
 class TestCameraSettings(unittest.TestCase):
@@ -113,11 +152,12 @@ class TestCameraSettings(unittest.TestCase):
 class TestOakHandler(unittest.TestCase):
 
     def test_settings_extraction(self):
-        stereo, color, fps = OakHandler._extract_camera_settings(CameraSettings(CameraSetting.STEREO_720, CameraSetting.COLOR_1080, CameraSetting.FPS_30))
+        stereo, color, fps, imu = OakHandler._extract_camera_settings(CameraSettings(CameraSetting.STEREO_720, CameraSetting.COLOR_1080, CameraSetting.FPS_30, CameraSetting.IMU))
 
         self.assertEqual(stereo, '800p')
         self.assertEqual(color, '1080p')
         self.assertEqual(fps, 30)
+        self.assertTrue(imu)
 
 
 class TestRealSenseHandler(unittest.TestCase):

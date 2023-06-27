@@ -16,3 +16,7 @@ class ThreadHandler:
     def join_all(self):
         for thread in self._threads:
             thread.join()
+
+    def active_count(self):
+        self._threads = [t for t in self._threads if t.is_alive()] # Clean up completed threads
+        return len(self._threads)
